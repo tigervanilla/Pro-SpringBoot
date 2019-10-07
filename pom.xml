@@ -9,9 +9,9 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>pro-springboot.apress</groupId>
-	<artifactId>todo-in-memory</artifactId>
+	<artifactId>todo-springboot</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>todo-in-memory</name>
+	<name>todo-springboot</name>
 	<description>Demo project for Spring Boot</description>
 
 	<properties>
@@ -29,6 +29,18 @@
 			<artifactId>lombok</artifactId>
 			<optional>true</optional>
 		</dependency>
+
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-jdbc</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>mysql</groupId>
+			<artifactId>mysql-connector-java</artifactId>
+			<scope>runtime</scope>
+		</dependency>
+
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-test</artifactId>
