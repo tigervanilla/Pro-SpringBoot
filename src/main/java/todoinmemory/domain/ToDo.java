@@ -37,7 +37,7 @@ public class ToDo {
     @NotNull
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private String id;
+    private long id;
 
     @NotNull
     @NotBlank
