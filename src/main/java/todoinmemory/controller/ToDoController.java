@@ -9,26 +9,28 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import todoinmemory.domain.ToDo;
 import todoinmemory.domain.ToDoBuilder;
 import todoinmemory.repository.CommonRepository;
+import todoinmemory.repository.ToDoRepository;
 import todoinmemory.validation.ToDoValidationError;
 import todoinmemory.validation.ToDoValidationErrorBuilder;
 
 import javax.validation.Valid;
 import java.net.URI;
+import java.util.Optional;
 
 // @RestController annotation is a convenience annotation that is itself annotated with @Controller and @ResponseBody
 @RestController
 @RequestMapping("/api")
 public class ToDoController {
 
-    private CommonRepository<ToDo> repository;
+    private ToDoRepository toDoRepository;
 /*
  The constructor is annotated with @Autowired, meaning
- that it injects the CommonRepository<ToDo> implementation
+ that it injects the ToDoRepository implementation that is provided by JPA.
  This annotation can be omitted; Spring automatically injects any declared dependency since version 4.3.
 */
     @Autowired
-    public ToDoController(CommonRepository<ToDo> repository) {
-        this.repository=repository;
+    public ToDoController(ToDoRepository toDoRepository) {
+        this.toDoRepository=toDoRepository;
     }
 
 /*
@@ -41,19 +43,34 @@ public class ToDoController {
 
     @GetMapping("/todo")
     public ResponseEntity<Iterable<ToDo>> getToDos() {
-        return ResponseEntity.ok(repository.findAll());
+        return ResponseEntity.ok(toDoRepository.findAll());
     }
 
+    /**
+     * Optional is a container object which may or may not contain a non-null value.
+     * If a value is present,isPresent() returns true and get() will return the value.
+     * If no value is present, the object is considered empty and isPresent() returns false.
+     * orElse() returns a default value if value is not present.
+     * ifPresent() executes a block of code if the value is present.
+     */
     @GetMapping("/todo/{id}")
     public ResponseEntity<ToDo> getToDoById(@PathVariable String id) {
-        return ResponseEntity.ok(repository.findById(id));
+        Optional<ToDo> toDo=toDoRepository.findById(id);
+        if (toDo.isPresent()){
+            return ResponseEntity.ok(toDo.get());
+        }
+        return ResponseEntity.notFound().build();
     }
 
     @PatchMapping("/todo/{id}")
     public ResponseEntity<ToDo> setCompleted(@PathVariable  String id) {
-        ToDo result=repository.findById(id);
+        Optional<ToDo> toDo=toDoRepository.findById(id);
+        if(!toDo.isPresent()){
+            return ResponseEntity.notFound().build();
+        }
+        ToDo result=toDo.get();
         result.setCompleted(true);
-        repository.save(result);
+        toDoRepository.save(result);
         URI location= ServletUriComponentsBuilder.fromCurrentRequest().buildAndExpand(result.getId()).toUri();
         return ResponseEntity.ok().header("Location",location.toString()).build();
     }
@@ -82,7 +99,7 @@ and override Spring Boot’s defaults).
         if (errors.hasErrors()) {
             return ResponseEntity.badRequest().body(ToDoValidationErrorBuilder.fromBindingErrors(errors));
         }
-        ToDo result=repository.save(toDo);
+        ToDo result=toDoRepository.save(toDo);
 //        Location exposes the ID of the todo you have just created
         URI location=ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}").buildAndExpand(result.getId()).toUri();
         return ResponseEntity.created(location).build();
@@ -90,13 +107,13 @@ and override Spring Boot’s defaults).
 
     @DeleteMapping("/todo/{id}")
     public ResponseEntity<ToDo> deleteToDo(@PathVariable String id) {
-        repository.delete(ToDoBuilder.create().withId(id).build());
+        toDoRepository.delete(ToDoBuilder.create().withId(id).build());
         return ResponseEntity.noContent().build();
     }
 
     @DeleteMapping("/todo")
     public ResponseEntity<ToDo> deleteToDo(@RequestBody ToDo toDo) {
-        repository.delete(toDo);
+        toDoRepository.delete(toDo);
         return ResponseEntity.noContent().build();
     }
 
