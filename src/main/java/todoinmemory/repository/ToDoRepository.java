@@ -1,13 +1,26 @@
 package todoinmemory.repository;
 
-import org.springframework.data.repository.CrudRepository;
+import org.springframework.stereotype.Repository;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 import todoinmemory.domain.ToDo;
 
-public interface ToDoRepository extends CrudRepository<ToDo, String> {}
+import java.util.Arrays;
 
-/*
-* It is not necessary to create a concrete class or implement anything;
-* Spring Data JPA does the implementation for us.
-* All the CRUD actions handle anything that we need to persist data.
-* That's it-there's nothing else that we need to do to use ToDoRepository.
-*/
+@Repository
+public class ToDoRepository{
+    private Flux<ToDo> toDoFlux=Flux.fromIterable(Arrays.asList(
+            new ToDo("Do homework"),
+            new ToDo("Workout in the morning", true),
+            new ToDo("Make dinner tonight"),
+            new ToDo("Clean the studio",true)
+    ));
+
+    public Mono<ToDo> findById(String id){
+        return Mono.from(toDoFlux.filter(todo->todo.getId().equals(id)));
+    }
+
+    public Flux<ToDo> findAll(){
+        return toDoFlux;
+    }
+}
